@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Visualization Challenge</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      padding: 20px;
+      transition: opacity 0.5s;
+    }
+    h1 {
+      color: #4A90E2;
+    }
+    .header {
+      margin-bottom: 20px;
+    }
+    .header h2 {
+      font-size: 18px; /* Smaller font size */
+      color: #666; /* Grey color */
+      margin: 5px 0;
+    }
+    .header img {
+      width: 2cm; /* Logo size */
+      height: 2cm;
+      margin-top: 10px;
+    }
+    #chart-container {
+      width: var(--chart-size); /* Use chart_size variable */
+      height: var(--chart-size);
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+      display: none; /* Hidden by default */
+    }
+    .options-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .option {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+      background-color: #ddd;
+    }
+    .option:hover {
+      background-color: #bbb; /* Hover effect */
+    }
+    .selected {
+      background-color: #4A90E2;
+      color: white;
+    }
+    .correct {
+      background-color: #4CAF50 !important;
+      color: white;
+    }
+    .wrong {
+      background-color: #E74C3C !important;
+      color: white;
+    }
+    #feedback {
+      font-size: 16px;
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+      display: none;
+    }
+    #submitBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      background-color: #4A90E2;
+      color: white;
+      cursor: pointer;
+    }
+    #submitBtn:hover {
+      background-color: #357ABD;
+    }
+    #continueBtn {
+      display: none;
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      background-color: #4A90E2;
+      color: white;
+      cursor: pointer;
+    }
+    #continueBtn:hover {
+      background-color: #357ABD;
+    }
+    #progress-bar {
+      width: 60%;
+      height: 10px;
+      background-color: #ddd;
+      margin: 20px auto;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    #progress {
+      height: 100%;
+      width: 0%;
+      background-color: #4A90E2;
+    }
+    #leaderboard {
+      margin-top: 20px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .badge {
+      display: none;
+      font-size: 18px;
+      color: gold;
+      margin-top: 20px;
+    }
+    #lesson-slides {
+      display: none; /* Hidden by default */
+      margin-top: 20px;
+    }
+    .slide {
+      display: none; /* Hidden by default */
+    }
+    .slide img {
+      max-width: 50%; /* Resize images to 50% */
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+    }
+    #slide-controls {
+      margin-top: 20px;
+    }
+    #slide-controls button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      background-color: #4A90E2;
+      color: white;
+      cursor: pointer;
+      margin: 0 10px;
+    }
+    #slide-controls button:hover {
+      background-color: #357ABD;
+    }
+    #next-question-btn {
+      display: none;
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    #next-question-btn:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <img src="https://www.dropbox.com/scl/fi/sguo17f2b1gnw3gx4mh33/NU_MonoLVX_RGB_RB.png?rlkey=b7lwnfr3dys7g8lt6lla3kl6g&dl=1" alt="Logo">
+    <h2>IE6600: Computation and Data Visualization</h2>
+    <h2>Prof Dehghani</h2>
+  </div>
+
+  <h1>Data Visualization Challenge</h1>
+  <div id="progress-bar">
+    <div id="progress"></div>
+  </div>
+
+  <p id="question-text">
+    A company wants to compare the sales performance of five products. Which visualization best represents this comparison?
+  </p>
+
+  <div class="options-container">
+    <!-- Options will be dynamically populated -->
+  </div>
+
+  <button id="submitBtn" onclick="checkAnswer()">Submit</button>
+
+  <div id="chart-container">
+    <canvas id="dataChart"></canvas>
+  </div>
+
+  <div id="feedback"></div>
+  <button id="continueBtn" onclick="showLessonSlides()">Learn More</button>
+
+  <!-- Lesson Slides -->
+  <div id="lesson-slides">
+    <!-- Bar Chart Slides -->
+    <div class="slide" id="slide-1">
+      <img src="https://www.dropbox.com/scl/fi/5tqgzdtvtcmyplpk8t4n2/1_Bar_Chart_1.png?rlkey=ip7ia4ublxvlkrst10drv7wrm&dl=1" alt="Bar Chart Introduction">
+    </div>
+    <div class="slide" id="slide-2">
+      <img src="https://www.dropbox.com/scl/fi/qpfoac2zx2awhfg6nt9yv/2_Bar_Chart_2.png?rlkey=c5qnzn6kzdzcic946rpy2ghdc&dl=1" alt="Bar Chart Pros and Cons">
+    </div>
+
+    <!-- Pie Chart Slides -->
+    <div class="slide" id="slide-3">
+      <img src="https://www.dropbox.com/scl/fi/p22ijy5m96ul45o52hfpg/PieChart_1.png?rlkey=6wdxanqak8cjxb51aqtvykpg6&dl=1" alt="Pie Chart Introduction">
+    </div>
+    <div class="slide" id="slide-4">
+      <img src="https://www.dropbox.com/scl/fi/t535qi4xbck3c8v1n2ya3/PieChart_2.png?rlkey=t3p193j3oq2mogbslxbzuqqs7&dl=1" alt="Pie Chart Pros and Cons">
+    </div>
+
+    <!-- Line Chart Slides -->
+    <div class="slide" id="slide-5">
+      <img src="https://www.dropbox.com/scl/fi/4p512jub845ngfjqagqc8/3_LinePlot_a.png?rlkey=ggivy9gye1ldmowgeasyp21uw&dl=1" alt="Line Chart Introduction">
+    </div>
+    <div class="slide" id="slide-6">
+      <img src="https://www.dropbox.com/scl/fi/yxlnnn6aywjlprwmolez8/3_LinePlot_b.png?rlkey=5kvp202bmdthjtchpjtrfidqt&dl=1" alt="Line Chart Pros and Cons">
+    </div>
+
+    <!-- Scatter Plot Slides -->
+    <div class="slide" id="slide-7">
+      <img src="https://www.dropbox.com/scl/fi/gqukzhfp53usfte0sg0zu/4_Scatter-Plot_a.png?rlkey=hf6l24l7b3gei988q0dv9cpf3&dl=1" alt="Scatter Plot Introduction">
+    </div>
+    <div class="slide" id="slide-8">
+      <img src="https://www.dropbox.com/scl/fi/ia6ncpdt0ec1oopliax7l/4_Scatter-Plot_b.png?rlkey=s7jkrmlf9f28i0kjx3t5osboh&dl=1" alt="Scatter Plot Pros and Cons">
+    </div>
+
+    <!-- Slide Controls -->
+    <div id="slide-controls">
+      <button id="next-slide-btn" onclick="nextSlide()">Next</button>
+    </div>
+    <button id="next-question-btn" onclick="nextQuestion()">Next Question</button>
+  </div>
+
+  <p id="leaderboard">Score: <span id="score">0</span></p>
+  <p class="badge">🏆 You earned the "Data Master" badge!</p>
+
+  <script>
+    // Chart size variable (5x5 cm)
+    const chart_size = "400px"; // Adjust as needed
+    document.documentElement.style.setProperty('--chart-size', chart_size);
+
+    // Color palette
+    const colors_palette = ["#FF6384", "#36A2EB", "#FFCE56", "#4CAF50", "#8E44AD"];
+
+    let ctx = document.getElementById('dataChart').getContext('2d');
+    let chart;
+    let currentQuestion = 1;
+    let score = 0;
+    let selectedChartType = null;
+    let currentSlide = 0;
+
+    const questions = [
+      {
+        text: "A company wants to compare the sales performance of five products. Which visualization best represents this comparison?",
+        correct: "bar",
+        explanation: "A bar chart is best for comparing different categories.",
+        dataset: {
+          labels: ["Product A", "Product B", "Product C", "Product D", "Product E"],
+          values: [230, 450, 560, 780, 900]
+        },
+        slides: [0, 1] // Indices of slides for this question
+      },
+      {
+        text: "A survey was conducted to find the proportion of people who prefer different types of transportation. Which chart type should be used?",
+        correct: "pie",
+        explanation: "A pie chart is best for showing proportions.",
+        dataset: {
+          labels: ["Car", "Bike", "Bus", "Train", "Walking"],
+          values: [40, 15, 20, 10, 15]
+        },
+        slides: [2, 3] // Indices of slides for this question
+      },
+      {
+        text: "A researcher wants to visualize the trend of temperature changes over a week. Which chart type should be used?",
+        correct: "line",
+        explanation: "A line chart is best for showing trends over time.",
+        dataset: {
+          labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+          values: [22, 24, 25, 23, 26, 27, 28]
+        },
+        slides: [4, 5] // Indices of slides for this question
+      },
+      {
+        text: "A company wants to visualize the relationship between advertising spend and sales revenue. Which chart type should be used?",
+        correct: "scatter",
+        explanation: "A scatter plot is best for visualizing relationships between two variables.",
+        dataset: {
+          xValues: [100, 200, 300, 400, 500],
+          yValues: [150, 300, 450, 600, 750]
+        },
+        slides: [6, 7] // Indices of slides for this question
+      }
+    ];
+
+    // Function to shuffle an array (Fisher-Yates algorithm)
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Function to populate options randomly
+    function populateOptions() {
+      const optionsContainer = document.querySelector(".options-container");
+      optionsContainer.innerHTML = ""; // Clear previous options
+
+      const options = [
+        { type: "bar", label: "📊 Bar Chart" },
+        { type: "pie", label: "🥧 Pie Chart" },
+        { type: "line", label: "📈 Line Chart" },
+        { type: "scatter", label: "🔵 Scatter Plot" }
+      ];
+
+      // Shuffle the options
+      const shuffledOptions = shuffleArray(options);
+
+      // Add shuffled options to the container
+      shuffledOptions.forEach(option => {
+        const button = document.createElement("button");
+        button.className = "option";
+        button.textContent = option.label;
+        button.onclick = () => selectChart(option.type, button);
+        optionsContainer.appendChild(button);
+      });
+    }
+
+    function createChart(type, dataset) {
+      if (chart) {
+        chart.destroy();
+      }
+
+      let dataConfig;
+
+      if (type === "bar") {
+        dataConfig = {
+          labels: dataset.labels,
+          datasets: [{
+            label: "Values",
+            data: dataset.values,
+            backgroundColor: colors_palette
+          }]
+        };
+      } else if (type === "pie") {
+        dataConfig = {
+          labels: dataset.labels,
+          datasets: [{
+            data: dataset.values,
+            backgroundColor: colors_palette
+          }]
+        };
+      } else if (type === "line") {
+        dataConfig = {
+          labels: dataset.labels,
+          datasets: [{
+            label: "Values",
+            data: dataset.values,
+            borderColor: colors_palette[1],
+            fill: false
+          }]
+        };
+      } else if (type === "scatter") {
+        dataConfig = {
+          datasets: [{
+            label: "Correlation Data",
+            data: dataset.xValues.map((x, i) => ({ x: x, y: dataset.yValues[i] })),
+            backgroundColor: colors_palette[1],
+            pointRadius: 6
+          }]
+        };
+      }
+
+      chart = new Chart(ctx, {
+        type: type === "scatter" ? "scatter" : type,
+        data: dataConfig,
+        options: {
+          animation: {
+            duration: 1000, // Animation duration in milliseconds
+            easing: 'easeInOutQuad' // Smooth easing function
+          }
+        }
+      });
+
+      document.getElementById("chart-container").style.display = "block"; // Show chart
+    }
+
+    function selectChart(type, button) {
+      selectedChartType = type;
+      document.querySelectorAll('.option').forEach(btn => btn.classList.remove("selected"));
+      button.classList.add("selected");
+
+      const question = questions[currentQuestion - 1];
+      createChart(type, question.dataset); // Generate chart based on selection
+    }
+
+    function checkAnswer() {
+      if (!selectedChartType) {
+        alert("Please select an option first.");
+        return;
+      }
+
+      const question = questions[currentQuestion - 1];
+      document.querySelectorAll('.option').forEach(btn => btn.classList.remove("correct", "wrong"));
+
+      const feedback = document.getElementById("feedback");
+      const continueBtn = document.getElementById("continueBtn");
+
+      if (selectedChartType === question.correct) {
+        feedback.innerHTML = `<div style="color: #4CAF50;">✅ Correct! ${question.explanation}</div>`;
+        score += 10;
+        document.getElementById("score").textContent = score;
+      } else {
+        feedback.innerHTML = `<div style="color: #E74C3C;">❌ Incorrect. ${question.explanation}</div>`;
+      }
+
+      feedback.style.display = "block";
+      continueBtn.style.display = "block";
+
+      // Disable options after submission
+      document.querySelectorAll('.option').forEach(btn => btn.disabled = true);
+
+      // Smooth scroll to feedback
+      feedback.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showLessonSlides() {
+      const question = questions[currentQuestion - 1];
+      currentSlide = question.slides[0]; // Start with the first slide
+      document.getElementById("lesson-slides").style.display = "block";
+      showSlide(currentSlide);
+      document.getElementById("continueBtn").style.display = "none";
+
+      // Smooth scroll to slides
+      document.getElementById("lesson-slides").scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showSlide(index) {
+      const slides = document.querySelectorAll(".slide");
+      slides.forEach((slide, i) => {
+        slide.style.display = i === index ? "block" : "none";
+      });
+
+      // Show "Next" button only on the first slide
+      const nextSlideBtn = document.getElementById("next-slide-btn");
+      nextSlideBtn.style.display = index === questions[currentQuestion - 1].slides[0] ? "block" : "none";
+
+      // Show "Next Question" button only on the last slide
+      const nextQuestionBtn = document.getElementById("next-question-btn");
+      nextQuestionBtn.style.display = index === questions[currentQuestion - 1].slides[1] ? "block" : "none";
+
+      // Change button text to "End" on the last question
+      if (currentQuestion === questions.length) {
+        nextQuestionBtn.textContent = "End";
+      }
+    }
+
+    function nextSlide() {
+      const question = questions[currentQuestion - 1];
+      if (currentSlide < question.slides[1]) {
+        currentSlide++;
+        showSlide(currentSlide);
+      }
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      document.getElementById("progress").style.width = (currentQuestion / questions.length) * 100 + "%";
+      if (currentQuestion > questions.length) {
+        showFinalPage(); // Redirect to the final page
+        return;
+      }
+      document.getElementById("question-text").textContent = questions[currentQuestion - 1].text;
+      document.getElementById("feedback").style.display = "none";
+      document.getElementById("continueBtn").style.display = "none";
+      document.getElementById("chart-container").style.display = "none"; // Hide chart for next question
+      document.getElementById("lesson-slides").style.display = "none"; // Hide slides
+      selectedChartType = null;
+      document.querySelectorAll('.option').forEach(btn => {
+        btn.classList.remove("selected");
+        btn.disabled = false; // Re-enable options for the next question
+      });
+
+      // Populate options randomly for the next question
+      populateOptions();
+    }
+
+    function showFinalPage() {
+      document.body.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center;">
+          <h1 style="color: #4A90E2;">Congratulations!</h1>
+          <p style="font-size: 18px;">You successfully completed this chart type quiz.</p>
+          <img src="https://www.dropbox.com/scl/fi/kuewjso0lgf1dhsfvb64h/certificate.png?rlkey=cqjra3zlhrb9ga95sqruzll0j&dl=1" alt="Completion Badge" style="width: 50%; max-width: 400px; margin-top: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1);">
+        </div>
+      `;
+    }
+
+    // Initialize for the first question
+    document.getElementById("question-text").textContent = questions[currentQuestion - 1].text;
+    document.getElementById("feedback").style.display = "none";
+    document.getElementById("continueBtn").style.display = "none";
+    document.getElementById("chart-container").style.display = "none"; // Hide chart for next question
+    document.getElementById("lesson-slides").style.display = "none"; // Hide slides
+    selectedChartType = null;
+    document.querySelectorAll('.option').forEach(btn => {
+      btn.classList.remove("selected");
+      btn.disabled = false; // Re-enable options for the next question
+    });
+
+    // Populate options randomly for the first question
+    populateOptions();
+  </script>
+</body>
+</html>
